@@ -35,7 +35,7 @@ labels <- results[[2]]$labels
 fe_vars <- results[[2]]$fe_vars
 
 # Load visualization functions from Github
-devtools::source_url("https://raw.githubusercontent.com/MGanslmeier/ExtremeBoundaryAnalysis/blob/master/src/2build_graph/wrapper.R")
+devtools::source_url("https://raw.githubusercontent.com/MGanslmeier/ExtremeBoundaryAnalysis/master/src/2build_graph/wrapper.R?token=AKADO6G6KNB5IM5OVP2VN4C56QM2O")
 ```
 
 ```{r echo=FALSE}
