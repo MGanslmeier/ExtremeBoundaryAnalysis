@@ -1,0 +1,8 @@
+library(devtools)
+source_url('https://raw.githubusercontent.com/MGanslmeier/eba_visualization/master/0helper.R') 
+source_url('https://raw.githubusercontent.com/MGanslmeier/eba_visualization/master/1overview_table.R')
+source_url('https://raw.githubusercontent.com/MGanslmeier/eba_visualization/master/1overview_table.R')
+source_url('https://raw.githubusercontent.com/MGanslmeier/eba_visualization/master/2barpie_plot.R')
+source_url('https://raw.githubusercontent.com/MGanslmeier/eba_visualization/master/3coeff_plot.R')
+source_url('https://raw.githubusercontent.com/MGanslmeier/eba_visualization/master/4distribution_plot.R')
+source_url('https://raw.githubusercontent.com/MGanslmeier/eba_visualization/master/5metastat_plot.R')
