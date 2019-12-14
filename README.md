@@ -1,3 +1,3 @@
 # Extreme Boundary Analysis
 
-This repository includes all EBA analysis of the blog posts on the Extreme Boundary Analysis blog. I want to be as transparent as possible which is why I make the entire code of the analysis and the visualizations publicly available. The original datasets and authors' code files cannot be made available here because of copyright restrictions. However, you can access them through the AEA website.
+This repository includes all EBA files.
