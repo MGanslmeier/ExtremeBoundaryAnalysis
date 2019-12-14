@@ -1,0 +1,204 @@
+---
+runtime: shiny
+output: html_document
+---
+
+```{r setup, include=FALSE}
+setwd("~/Desktop/R_projects/lastRA/ExtremeBoundaryAnalysis/papers")
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning=FALSE, fig.width=12, root.dir='')
+```
+
+```{r, echo=FALSE}
+# load libraries
+library(devtools)
+library(parallel)
+library(ggplot2) 
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggpubr)
+library(kableExtra)
+library(gridExtra)
+library(shiny)
+library(DT)
+library(plotly)
+library(ggplotify)
+```
+
+```{r echo=FALSE}
+# Load results
+load('../est_out/results_table5_col1.RData')
+res_final <- results[[1]]
+dependent <- results[[2]]$dep
+controls <- results[[2]]$controls
+labels <- results[[2]]$labels
+fe_vars <- results[[2]]$fe_vars
+
+# Load visualization functions from Github
+devtools::source_url("https://raw.githubusercontent.com/MGanslmeier/ExtremeBoundaryAnalysis/master/src/2build_graph/wrapper.R")
+```
+
+```{r echo=FALSE}
+focus_list <- labels$varname[labels$varname %in% controls]
+names(focus_list) <- labels$labeltext[labels$varname %in% controls]
+if(fe_vars!=''){
+  choiceValues_fe <- c(unique(res_final$model_type_fe), 'all')
+  choiceNames_fe <- revalue(choiceValues_fe, c('fe_unit'='Unit FE', 'fe_time'='Time FE', 'none'='None', 'both'='Both', 'all'='all Models'))
+  select_fevar <- 'all'
+  choiceNames_se <- list("Standard SE", "Robust SE", "Robust Clustered Unit SE")
+  choiceValues_se <- list("stand", "rob", "clu")
+} else{
+  choiceValues_fe <- 'none'
+  choiceNames_fe <- revalue(choiceValues_fe, c('none'='None'))
+  select_fevar <- 'none'
+  choiceNames_se <- list("Standard SE","Robust SE")
+  choiceValues_se <- list("stand","rob")
+}
+
+fluidRow(
+
+    column(6,
+        h4("1. Select Independent Variable of Interest"),
+        selectInput("selector_focus", choices = focus_list, label = '', selected='')
+    ),
+
+    column(3,
+      h4("2. Select Fixed Effects"),
+      radioButtons("selector_model", "", selected = select_fevar, inline = F,
+             choiceNames = choiceNames_fe, choiceValues = choiceValues_fe)
+    ),
+    
+    column(3,
+      h4("3. Select Standard Error"),
+      radioButtons("selector_se", label="", selected="stand", inline = F, 
+                   choiceNames = choiceNames_se, choiceValues = choiceValues_se)
+    )
+)
+
+fluidRow(
+    h4("4. Define Model Quality"),
+    
+    column(2,
+      h6("Select Minimum R2"),
+      # Select Min R2
+      sliderInput("selector_r2", "", animate=T, min = 0, max = 1, value = 0)
+    ),
+    column(2,
+      # Select Min BP
+      h6("Select max Variance-Inflation-Factor (VIF) (multi-collinearity)"),
+      sliderInput("selector_vif", "", animate=T, min = 1, max = 100, value = 100)
+    ),  
+    column(2,
+      # Select Min BP
+      h6("Select min p-value of Breusch-Pagan (heteroscedasticity):"),
+      sliderInput("bp_min", "", animate=T, min = 0, max = 1, value = 0)
+    ),
+    column(2,
+      # Select Min Ramsey
+      h6("Select min p-value of Ramsey RESET (non-linearity):"),
+      sliderInput("ramsey_min", "", animate=T, min = 0, max = 1, value = 0)
+    ),
+    column(2,
+      # Select Min Durbin-Watson
+      h6("Select min p-value of Durbin-Watson (auto-correlation):"),
+      sliderInput("dw_min", "", animate=T, min = 0, max = 1, value = 0)
+    ),
+    column(2,
+      # Select Max Kolmogorov–Smirnov
+      h6("Select max p-value of Kolmogorov–Smirnov (residual normality):"),
+      sliderInput("ks_max", "", animate=T, min = 0, max = 1, value = 1)
+    )
+)
+
+
+```
+
+## {.tabset}
+### Overview
+```{r, echo=FALSE, fig.width=4, fig.height=4, fig.align="center", results='asis'}
+overalltable <- reactive({
+  overall_table_builder(res_final, dependent, controls, input$selector_focus,
+                        input$selector_model, input$selector_se,
+                        input$selector_r2, input$selector_vif, input$bp_min, 
+                        input$ramsey_min, input$dw_min, input$ks_max, labels)
+})
+
+renderTable(
+  overalltable(), colnames = TRUE, striped = TRUE, hover = TRUE
+)
+```
+
+### Robustness
+```{r, echo=FALSE, fig.width=4, fig.height=4, fig.align="center", results='asis'}
+renderPlot({
+  tryCatch({
+
+    robustness_plots <- barpie_plot(res_final, input$selector_focus, input$selector_model,
+                                    input$selector_se, input$selector_r2, input$selector_vif, input$bp_min,
+                                    input$ramsey_min, input$dw_min, input$ks_max)
+    grid.arrange(robustness_plots[[1]],robustness_plots[[2]],ncol=2)
+
+  },error=function(e){
+    grid.arrange(text_grob(label='Please change the model specification -- no results meet your model criteria you set above',size=20),ncol=1)
+  })
+})
+
+```
+
+### Coefficient Plot {.active}
+```{r, echo=FALSE, fig.width=4, fig.height=4, fig.align="center", results='asis'}
+sliderInput("selector_ci", "Select Confidence Level (two-sided t-dist.):", min = 60, max = 99.9, value = 95)
+
+renderPlotly({
+  tryCatch({
+
+    coeff_chart <- coeff_plot(res_final,input$selector_focus,input$selector_model,input$selector_se,
+                              input$selector_r2,input$selector_vif,input$selector_ci, input$bp_min, 
+                              input$ramsey_min, input$dw_min, input$ks_max, labels)
+
+  },error=function(e){
+    ggplotly(as.ggplot(text_grob(label='',size=20)))
+  })
+})
+
+```
+
+### Coefficient Distribution
+```{r, echo=FALSE, fig.width=4, fig.height=4, fig.align="center", results='asis'}
+sliderInput("selector_bw_cp", "Bandwith:", min = 0.1, max = 3, value = 1.5)
+renderPlotly({
+  tryCatch({
+
+    distribution_plot(res_final,input$selector_focus,input$selector_model,
+                      input$selector_se,input$selector_bw_cp,input$selector_r2,
+                      input$selector_vif, input$bp_min, input$ramsey_min, 
+                      input$dw_min, input$ks_max)
+
+  },error=function(e){
+    ggplotly(as.ggplot(text_grob(label='',size=20)))
+  })
+})
+```
+
+### Goodness of Fit
+```{r, echo=FALSE, fig.width=4, fig.height=4, fig.align="center", results='asis'}
+# Select Quality Fit Measure
+radioButtons("selector_fit", "Select Measurement:", selected = 'r2', inline = T,
+             choiceNames = list('R2', 'Log-Likelihood', 'AIC', "BIC", "VIF"),
+             choiceValues = list('r2', 'loglh', "aic",  'bic', "vif"))
+sliderInput("selector_bw_qual", "Bandwith:", min = 0.1, max = 3, value = 1.5)
+
+renderPlotly({
+  tryCatch({
+
+    metastat_plot(res_final,input$selector_focus,input$selector_model,
+                  input$selector_se,input$selector_fit,input$selector_bw_qual,
+                  input$selector_r2,input$selector_vif, input$bp_min, input$ramsey_min, 
+                  input$dw_min, input$ks_max)
+
+  },error=function(e){
+    ggplotly(as.ggplot(text_grob(label='',size=20)))
+  })
+})
+```
+
