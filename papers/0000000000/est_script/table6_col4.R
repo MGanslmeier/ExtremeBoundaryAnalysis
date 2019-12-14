@@ -1,7 +1,7 @@
 # DEFINE WORKING DIRECTORY
 setwd("~/Desktop/R_projects/lastRA/ExtremeBoundaryAnalysis/papers/0000000000")
-pacman::p_load(plyr, dplyr, readxl, plm, parallel, tidyr, ggplot2, lmtest, multiwayvcov, foreign, haven, gtools, jsonlite, purrr)
 rm(list = ls())
+source('../../src/1run_eba/0helper.R')
 
 ############################
 

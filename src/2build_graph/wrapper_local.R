@@ -1,6 +1,0 @@
-source('../../src/2build_graph/0helper.R')
-source('../../src/2build_graph/1overview_table.R')
-source('../../src/2build_graph/2barpie_plot.R')
-source('../../src/2build_graph/3coeff_plot.R')
-source('../../src/2build_graph/4distribution_plot.R')
-source('../../src/2build_graph/5metastat_plot.R')

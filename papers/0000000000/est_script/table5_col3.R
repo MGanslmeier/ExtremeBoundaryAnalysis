@@ -1,9 +1,7 @@
 # DEFINE WORKING DIRECTORY
-setwd("/Users/michaelganslmeier/Desktop/R_projects/lastRA/_2010_AmericanEconomicJournal_Macroeconomics_Obstfeld_MauriceShambaugh_Jay_CTaylor_Alan_M")
-#.libPaths(c("/lustre/home/tjmsmga/Scratch/packinstall/libraries",.libPaths()))
-pacman::p_load(plyr, dplyr, readxl, plm, parallel, tidyr, ggplot2, lmtest, multiwayvcov, foreign, haven, gtools, jsonlite, purrr)
+setwd("~/Desktop/R_projects/lastRA/ExtremeBoundaryAnalysis/papers/0000000000")
 rm(list = ls())
-
+source('../../src/1run_eba/0helper.R')
 
 ############################
 
@@ -22,12 +20,12 @@ tablename <- 'table5_col3'
 
 # LABEL VARIABLES
 labels <- cbind(varname = c(dep, controls),
-                label = c(dep, controls)) %>% 
+                label = c(dep, controls)) %>%
   data.frame(., stringsAsFactors = F) %>%
   mutate(labeltext = paste(label, ' (', varname, ')', sep=''))
 
 # STORE MODEL SPECIFICATIONS
-param <- list(dep = dep, fe_vars = fe_vars, controls = controls, free = free, 
+param <- list(dep = dep, fe_vars = fe_vars, controls = controls, free = free,
               maxregN = maxregN, labels = labels, tablename = tablename)
 
 ############################
@@ -35,20 +33,20 @@ param <- list(dep = dep, fe_vars = fe_vars, controls = controls, free = free,
 
 # EBA ESTIMATION
 # Load Helper functions
-source('../eba/1run_eba/0helper.R')
+source('../../src/1run_eba/0helper.R')
 
 # Calculate Time for Estimations
 sampleN <- 10
-source('../eba/1run_eba/4calculateTime.R')
+source('../../src/1run_eba/4calculateTime.R')
 
 # Create Formulas
-source('../eba/1run_eba/1formulaCreate.R')
+source('../../src/1run_eba/1formulaCreate.R')
 
 # Run Model Estimations
-source('../eba/1run_eba/2modelEstimate.R')
+source('../../src/1run_eba/2modelEstimate.R')
 
 # Extract results
-source('../eba/1run_eba/3results_extraction.R')
+source('../../src/1run_eba/3resultsExtraction.R')
 eba_results <- res_final %>% mutate(result_type = 'Estimation from EBA')
 
 ############################
@@ -56,14 +54,14 @@ eba_results <- res_final %>% mutate(result_type = 'Estimation from EBA')
 
 # PAPER ESTIMATION
 # Create Formulas
-formula_df <- c('lnresgdp~newkopen2+peg+softpeg+lnm2gdp+lntradegdp') %>% 
+formula_df <- c('lnresgdp~newkopen2+peg+softpeg+lnm2gdp+lntradegdp') %>%
   data.frame(formula = ., stringsAsFactors = F)
 
 # Run Model Estimations
-source('../eba/1run_eba/2modelEstimate.R')
+source('../../src/1run_eba/2modelEstimate.R')
 
 # Extract results
-source('../eba/1run_eba/3results_extraction.R')
+source('../../src/1run_eba/3resultsExtraction.R')
 paper_results <- res_final %>% mutate(result_type = 'Estimation from Paper')
 
 ############################
